@@ -1,8 +1,9 @@
 import User from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
+import { errorHandler } from "../utils/error.js";
 
 class AuthController {
-  async signup(req, res) {
+  async signup(req, res, next) {
     const {
       username,
       email,
@@ -10,9 +11,7 @@ class AuthController {
     } = req.body;
 
     if (!username || !email || !password || username == '' || email == '' || password == '') {
-      return res.status(422).json({
-        message: "Username, Email and Password is required."
-      });
+      next(errorHandler(422,"Username, Email and Password is required."));
     }
     var hashPassword = bcryptjs.hashSync(password,10);
     const registerUser = new User({
@@ -27,9 +26,7 @@ class AuthController {
       });
 
     } catch (err) {
-      return res.status(500).json({
-        message: err.message
-      });
+      next(err)
 
     }
   }
