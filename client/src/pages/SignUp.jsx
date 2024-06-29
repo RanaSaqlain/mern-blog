@@ -1,8 +1,44 @@
-import { Button, Label, TextInput } from "flowbite-react";
-import React from "react";
-import { Link } from "react-router-dom";
+import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export const SignUp = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({});
+  const [error, setError] = useState(null);
+  const [loader, setLoader] = useState(false);
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value.trim(),
+    });
+  };
+  const handleFormSubmission = async (e) => {
+    e.preventDefault();
+    if (!formData.username || !formData.email || !formData.password) {
+      return setError("Username, email and password can not be empty.");
+    }
+    try {
+      setLoader(true);
+      setError(null);
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        return setError(data.message);
+      }
+      setLoader(false);
+      if (res.ok) {
+        navigate('/sign-in')
+      }
+    } catch (error) {
+      setError(error.message);
+      setLoader(false);
+    }
+  };
   return (
     <div className="min-h-screen mt-20 gap-5">
       <div className="flex p-3 max-w-3xl  mx-auto flex-col md:flex-row md:items-center">
@@ -19,13 +55,14 @@ export const SignUp = () => {
           </p>
         </div>
         <div className="flex-1">
-          <form className="flex flex-col gap-4">
+          <form className="flex flex-col gap-4" onSubmit={handleFormSubmission}>
             <div>
               <Label value="User Name"></Label>
               <TextInput
                 type="text"
                 placeholder="Username"
                 id="username"
+                onChange={handleChange}
               ></TextInput>
             </div>
             <div>
@@ -33,28 +70,46 @@ export const SignUp = () => {
               <TextInput
                 type="email"
                 placeholder="abc@gmail.com"
-                id="username"
+                id="email"
+                onChange={handleChange}
               ></TextInput>
             </div>
             <div>
               <Label value="Password"></Label>
               <TextInput
-                type="text"
+                type="password"
                 placeholder="Password"
-                id="username"
+                id="password"
+                onChange={handleChange}
               ></TextInput>
             </div>
 
-            <Button 
-            type="submit"
-            gradientDuoTone='purpleToPink'>
-              Sign Up
+            <Button
+              type="submit"
+              gradientDuoTone="purpleToPink"
+              disabled={loader}
+            >
+              {loader ? (
+                <>
+                  <Spinner size="sm"></Spinner>
+                  <span className="pl-3">Loadding...</span>
+                </>
+              ) : (
+                "Sign Up"
+              )}
             </Button>
           </form>
           <div className="flex gap-2 text-sm mt-5">
             <span>Have an account ?</span>
-            <Link to='/sign-in' className="text-blue-400">Sign In</Link>
+            <Link to="/sign-in" className="text-blue-400">
+              Sign In
+            </Link>
           </div>
+          {error && (
+            <Alert className="mt-5" color="failure">
+              {error}
+            </Alert>
+          )}
         </div>
       </div>
     </div>
