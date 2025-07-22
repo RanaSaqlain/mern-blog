@@ -3,6 +3,7 @@ import authController from '../controllers/auth.controller.js';
 
 const routes = new Router();
 routes.post('/signup', authController.signup);
+routes.post('/signin', authController.signIn);
 
 // Add routes
 // routes.get('/', SessionController.store);
