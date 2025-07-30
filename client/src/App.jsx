@@ -8,16 +8,20 @@ import { SignUp } from "./pages/SignUp";
 import { Projects } from "./pages/Projects";
 import { Header } from "./components/Header";
 import FooterComponent from "./components/FooterComponent";
+import PrivateRoute from "./components/PrivateRoute";
 
 const App = () => {
   return (
     <>
       <BrowserRouter>
-      <Header />
+        <Header />
         <Routes>
           <Route path="/" element={<Home />}></Route>
           <Route path="/about" element={<About />}></Route>
-          <Route path="/dashboard" element={<Dashboard />}></Route>
+          <Route element={<PrivateRoute />}>
+            <Route path="/dashboard" element={<Dashboard />}>
+            </Route>
+          </Route>
           <Route path="/sign-in" element={<SignIn />}></Route>
           <Route path="/sign-up" element={<SignUp />}></Route>
           <Route path="/projects" element={<Projects />}></Route>
