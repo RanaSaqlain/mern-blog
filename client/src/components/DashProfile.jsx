@@ -1,15 +1,52 @@
 import { Button, TextInput } from "flowbite-react";
+import { set } from "mongoose";
+import { useEffect } from "react";
+import { useRef } from "react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 
 export default function DashProfile() {
   const { currentUser } = useSelector((state) => state.user);
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const filePickerRef = useRef(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  useEffect(() => {
+    if (image) {
+      uploadImage();
+    }
+  }, [image]);
+
+  const uploadImage = async () => {
+
+  };
+
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
       <h1 className="my-7 text-center text-xl font-semibold">Profile</h1>
       <form action="" className="flex flex-col gap-4 p-4">
-        <div className="w-32 h-32 self-center cursor-pointer shadow-md rounded-full overflow-hidden">
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          id="profilePictureInput"
+          onChange={handleImageChange}
+          ref={filePickerRef}
+        />
+        <div
+          className="w-32 h-32 self-center cursor-pointer shadow-md rounded-full overflow-hidden"
+          onClick={() => filePickerRef.current.click()}
+        >
           <img
-            src={currentUser.profilePicture}
+            src={imagePreview || currentUser.profilePicture}
             alt="user picture"
             className="rounded-full w-full h-full object-cover border-8 border-[lightgray] "
           />
@@ -27,13 +64,9 @@ export default function DashProfile() {
           placeholder="Email"
           defaultValue={currentUser.email}
         />
-        <TextInput
-          type="password"
-          id="password"
-          placeholder="****"
-        />
+        <TextInput type="password" id="password" placeholder="****" />
 
-        <Button type="submit" gradientDuoTone="purpleToBlue" outline >
+        <Button type="submit" gradientDuoTone="purpleToBlue" outline>
           Update
         </Button>
       </form>
