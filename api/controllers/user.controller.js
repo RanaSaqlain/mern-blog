@@ -175,8 +175,8 @@ class UserController {
       if (!updatedUser) {
         return next(errorHandler(404, 'User not found.'));
       }
-      
-      return res.status(200).json({ success: true, user: updatedUser });
+
+      return res.status(200).json({ success: true, currentUser: updatedUser });
     } catch (error) {
       console.error('Error updating user:', error);
       return next(errorHandler(500, 'Internal server error'));

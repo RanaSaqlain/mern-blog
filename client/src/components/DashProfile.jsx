@@ -4,7 +4,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { 
   uploadStart, 
   uploadSuccess, 
-  uploadFailure 
+  uploadFailure, 
+  updateUserStart,
+  updateUserSuccess,
+  updateUserFailure
 } from "../redux/user/userSlice"; // Adjust import path
 import { HiCheck, HiExclamation } from "react-icons/hi";
 
@@ -50,6 +53,7 @@ const ProgressRing = ({ progress, size = 128, strokeWidth = 4 }) => {
 export default function DashProfile() {
   const dispatch = useDispatch();
   const { currentUser, uploading, uploadError } = useSelector((state) => state.user);
+  const [ formData, setFormData ] = useState({});
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -59,6 +63,7 @@ export default function DashProfile() {
   const filePickerRef = useRef(null);
 
   const handleImageChange = (e) => {
+
     const file = e.target.files[0];
     if (file) {
       // Validate file type
@@ -196,10 +201,51 @@ export default function DashProfile() {
     }
   };
 
+  const handleInputChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value
+    }));
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if(formData && Object.keys(formData).length > 0){
+      try {
+        dispatch(updateUserStart());
+        const res = await fetch(`/api/user/update/${currentUser._id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser.token}`
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || 'Failed to update profile');
+        }
+
+        const data = await res.json();
+        dispatch(updateUserSuccess(data.currentUser));
+
+        showToastMessage('Profile updated successfully!', 'success');
+      
+      
+      } catch (error) {
+        showToastMessage(error.message, 'error');
+      }
+    } else {
+      showToastMessage('No changes to update.', 'error');
+    }
+  }
+
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
       <h1 className="my-7 text-center text-xl font-semibold">Profile</h1>
-      <form action="" className="flex flex-col gap-4 p-4">
+      <form action="" className="flex flex-col gap-4 p-4" onSubmit={handleSubmit} >
         <input
           type="file"
           accept="image/*"
@@ -262,15 +308,22 @@ export default function DashProfile() {
           type="text"
           id="username"
           placeholder="Username"
+          onChange={handleInputChange}
           defaultValue={currentUser?.username}
         />
         <TextInput
           type="text"
           id="email"
           placeholder="Email"
+          onChange={handleInputChange}
           defaultValue={currentUser?.email}
         />
-        <TextInput type="password" id="password" placeholder="****" />
+        <TextInput
+          type="password"
+          id="password"
+          placeholder="****"
+          onChange={handleInputChange}
+        />
 
         <Button type="submit" gradientDuoTone="purpleToBlue" outline>
           Update
