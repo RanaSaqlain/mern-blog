@@ -6,8 +6,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import userRoutes from "./routes/user.route.js"
 import authRoutes from  "./routes/auth.route.js"
+import cookieParser from "cookie-parser";
 
-dotenv.config();
+dotenv.config(); 
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -23,6 +24,7 @@ const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser());
 
 // File upload middleware
 app.use(fileUpload({

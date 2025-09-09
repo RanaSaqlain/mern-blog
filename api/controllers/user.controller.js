@@ -2,6 +2,8 @@
 import path from 'path';
 import fs from 'fs/promises';
 import User from '../models/user.model.js';
+import { errorHandler } from '../utils/error.js';
+import bcryptjs from 'bcryptjs';
 
 class UserController {
   async store(req, res) {
@@ -135,9 +137,52 @@ class UserController {
     return res.json();
   }
 
-  async update(req, res) {
-    return res.json();
+  async update(req, res, next) {
+    try {
+      const userId = req.params.id;
+      const updateData = req.body;
+
+      // Validate user ID
+      if (!userId) {
+        return next(errorHandler(400, 'User ID is required.'));
+      }
+      if (userId !== req.user.id) {
+        return next(errorHandler(403, 'You can only update your own profile.'));
+      }
+
+      if (req.body.password) {
+        if (req.body.password.length < 6) {
+          return next(errorHandler(400, 'Password must be at least 6 characters long.')); 
+        }
+        const hashedPassword = bcryptjs.hashSync(req.body.password, 10);
+        updateData.password = hashedPassword;
+      }
+
+      if(req.body.username)
+      {
+        if (req.body.username.length < 7 || req.body.username.length > 20) {
+          return next(errorHandler(400, 'Username must be at least 7 characters long and at most 20 characters long.'));
+        }
+        if(!/^[a-zA-Z0-9_]+$/.test(req.body.username)) {
+          return next(errorHandler(400, 'Username can only contain letters, numbers, and underscores.'));
+        }
+        updateData.username = req.body.username.toLowerCase();
+      }
+
+      // Find user and update
+      const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true })
+                                    .select('-password');
+      if (!updatedUser) {
+        return next(errorHandler(404, 'User not found.'));
+      }
+      
+      return res.status(200).json({ success: true, user: updatedUser });
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return next(errorHandler(500, 'Internal server error'));
+    }
   }
+
 
   async destroy(req, res) {
     return res.json();
