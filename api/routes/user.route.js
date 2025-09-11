@@ -10,4 +10,5 @@ router.get('/test', UserController.store);
 router.post('/upload',  UserController.uploadImage);
 router.put('/update/:id', verifyUser , UserController.update);
 router.delete('/delete/:id', verifyUser , UserController.delete);
+router.post('/signout', UserController.signOut);
 export default router;

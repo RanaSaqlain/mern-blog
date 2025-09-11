@@ -283,6 +283,25 @@ export default function DashProfile() {
      }
   };
 
+  const handleSignOut = async () => {
+    dispatch(signOut());
+    try {
+      const res = await fetch("/api/user/signout", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to sign out");
+      }
+      dispatch(signOut());
+    } catch (error) {
+      showToastMessage("Error signing out. Please try again.", "error");
+    }
+  };
+
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
       <h1 className="my-7 text-center text-xl font-semibold">Profile</h1>
@@ -383,7 +402,7 @@ export default function DashProfile() {
 
       <div className="text-red-500 cursor-pointer flex justify-between mt-4">
         <span onClick={() => setShowModal(true)}>Delete Account</span>
-        <span>Sign Out</span>
+        <span onClick={handleSignOut}>Sign Out</span>
       </div>
 
       {/* Toast Notification */}
