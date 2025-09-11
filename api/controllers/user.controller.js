@@ -184,8 +184,29 @@ class UserController {
   }
 
 
-  async destroy(req, res) {
-    return res.json();
+  async delete(req, res, next) {
+    try {
+      const userId = req.params.id;
+
+      // Validate user ID
+      if (!userId) {
+        return next(errorHandler(400, 'User ID is required.'));
+      }
+      if (userId !== req.user.id) {
+        return next(errorHandler(403, 'You can only delete your own profile.'));
+      }
+
+      // Find user and delete
+      const deletedUser = await User.findByIdAndDelete(userId);
+      if (!deletedUser) {
+        return next(errorHandler(404, 'User not found.'));
+      }
+
+      return res.status(200).json({ success: true, message: 'User deleted successfully.' });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return next(errorHandler(500, 'Internal server error'));
+    }
   }
 
   async view(req, res) {
